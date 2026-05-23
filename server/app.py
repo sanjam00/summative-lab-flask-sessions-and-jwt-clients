@@ -1,29 +1,10 @@
-"""
-Notes app/Journal Entries
-- Date/time last edited. If created: Date/Time created
-- title
-- body text
-# using jwt
-"""
-
 from flask import make_response, jsonify, request, session
-# from flask_migrate import Migrate
 from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
 from flask_jwt_extended import create_access_token, get_jwt_identity, verify_jwt_in_request, jwt_required
 
 from config import app, db, jwt, api
 from models import User, UserSchema, JournalEntry, JournalEntrySchema
-
-# @app.before_request
-# def check_if_logged_in():
-#   open_access_list = [
-#     'signup',
-#     'login'
-#   ]
-
-#   if (request.endpoint) not in open_access_list and (not verify_jwt_in_request()):
-#     return {'error': '401 Unauthorized'}, 401
   
 class Signup(Resource):
   def post(self):
