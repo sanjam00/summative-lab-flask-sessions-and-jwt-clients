@@ -12,7 +12,7 @@ from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
 from flask_jwt_extended import create_access_token, get_jwt_identity, verify_jwt_in_request, jwt_required
 
-from config import app, db, api, jwt
+from config import app, db, jwt, api
 from models import User, UserSchema, JournalEntry, JournalEntrySchema
 
 # @app.before_request
@@ -31,6 +31,11 @@ class Signup(Resource):
 
     username = request_json.get('username')
     password = request_json.get('password')
+
+    password_confirmation = request_json.get('password_confirmation')
+
+    if password != password_confirmation:
+      return {'error': 'Passwords do not match'}, 400
 
     user = User(
       username=username
@@ -74,10 +79,11 @@ class JournalIndex(Resource):
     user_id = get_jwt_identity()
 
     page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
 
     pagination = JournalEntry.query.filter(
         JournalEntry.user_id == user_id
-    ).paginate(page=page, per_page=5, error_out=False)
+    ).paginate(page=page, per_page=per_page, error_out=False)
 
     entries = pagination.items
 
@@ -164,7 +170,7 @@ class JournalByID(Resource):
     return {}, 204
   
 api.add_resource(Signup, '/signup', endpoint='signup')
-api.add_resource(WhoAmI, '/whoami', endpoint='whoami')
+api.add_resource(WhoAmI, '/me', endpoint='me')
 api.add_resource(Login, '/login', endpoint='login')
 api.add_resource(JournalIndex, '/entries')
 api.add_resource(JournalByID, '/entries/<int:id>')
