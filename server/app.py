@@ -128,7 +128,6 @@ class JournalByID(Resource):
 
     if 'title' in request_json:
       entry.title = request_json['title']
-
     if 'body' in request_json:
       entry.body = request_json['body']
 
