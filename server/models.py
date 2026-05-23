@@ -14,16 +14,19 @@ class User(db.Model):
 
   entries = db.relationship('JournalEntry', backref='user', lazy=True, cascade='all, delete-orphan')
 
+  # protect password_hash from being viewed
   @hybrid_property
   def password_hash(self):
     raise AttributeError('Password hashes may not be viewed.')
 
+  # hashes the password
   @password_hash.setter
   def password_hash(self, password):
     password_hash = bcrypt.generate_password_hash(
       password.encode('utf-8'))
     self._password_hash = password_hash.decode('utf-8')
 
+  # authenticates user by comparing the stored hashed password to the newly entered hashed password
   def authenticate(self, password):
     return bcrypt.check_password_hash(
       self._password_hash, password.encode('utf-8'))

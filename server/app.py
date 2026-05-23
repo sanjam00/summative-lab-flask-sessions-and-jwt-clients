@@ -13,8 +13,8 @@ class Signup(Resource):
     username = request_json.get('username')
     password = request_json.get('password')
 
+    # password confirmation upon signup
     password_confirmation = request_json.get('password_confirmation')
-
     if password != password_confirmation:
       return {'error': 'Passwords do not match'}, 400
 
@@ -32,22 +32,22 @@ class Signup(Resource):
       return {'errors': ['422 Unprocessable Entity']}, 422
     
 class WhoAmI(Resource):
+  # return identity of users
   @jwt_required()
   def get(self):
     user_id = get_jwt_identity()
-        
     user = User.query.filter(User.id == user_id).first()
-    
     return UserSchema().dump(user), 200
   
 class Login(Resource):
   def post(self):
-
     username = request.json['username']
     password = request.json['password']
 
+    # find the first username matching the one entered
     user = User.query.filter(User.username == username).first()
 
+    # authenticate user by comparing passwords of the queried user
     if user and user.authenticate(password):
       access_token = create_access_token(identity=str(user.id))
       return make_response(jsonify(token=access_token, user=UserSchema().dump(user)), 200)
@@ -55,6 +55,8 @@ class Login(Resource):
     return {'errors': ['401 Unauthorized']}, 401
   
 class JournalIndex(Resource):
+
+  # get multiple entries
   @jwt_required()
   def get(self):
     user_id = get_jwt_identity()
@@ -62,13 +64,13 @@ class JournalIndex(Resource):
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
 
+    # dynamic pagination
     pagination = JournalEntry.query.filter(
         JournalEntry.user_id == user_id
     ).paginate(page=page, per_page=per_page, error_out=False)
 
     entries = pagination.items
 
-    # return [JournalEntrySchema().dump(entry) for entry in entries], 200
     return {
     "entries": JournalEntrySchema(many=True).dump(entries),
     "total_pages": pagination.pages,
@@ -77,6 +79,7 @@ class JournalIndex(Resource):
     "has_prev": pagination.has_prev
     }, 200
 
+  # add a new journal entry
   @jwt_required()
   def post(self):
     request_json = request.get_json()
@@ -110,7 +113,7 @@ class JournalByID(Resource):
 
     return JournalEntrySchema().dump(entry), 200
   
-  # update
+  # update a journal entry
   @jwt_required()
   def patch(self, id):
     entry = JournalEntry.query.filter(
@@ -133,7 +136,7 @@ class JournalByID(Resource):
 
     return JournalEntrySchema().dump(entry), 200
 
-  # delete
+  # delete an entry
   @jwt_required()
   def delete(self, id):
     entry = JournalEntry.query.filter(
@@ -145,10 +148,9 @@ class JournalByID(Resource):
       return {'error': '404 Entry not found'}, 404
 
     db.session.delete(entry)
-
     db.session.commit()
 
-    return {}, 204
+    return {'message': '204 Entry successfully deleted'}, 204
   
 api.add_resource(Signup, '/signup', endpoint='signup')
 api.add_resource(WhoAmI, '/me', endpoint='me')

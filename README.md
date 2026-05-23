@@ -227,7 +227,9 @@ GET /entries?page=1&per_page=5
 **Description:** Deletes a journal entry belonging to the authenticated user.
 **Response:**
 ```json
-{}
+{
+  "message": "204 Entry successfully deleted"
+}
 ```
 *Status Code:*
 ```
